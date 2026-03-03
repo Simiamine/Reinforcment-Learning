@@ -1,0 +1,191 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+
+\geometry{margin=2cm}
+\pagestyle{fancy}
+\fancyhead[L]{\textbf{Reinforcement Learning -- Formulaire}}
+\fancyhead[R]{EFREI 2024/2025}
+\fancyfoot[C]{\thepage}
+
+\newtcolorbox{formbox}[1][]{colback=blue!5,colframe=blue!50!black,title=#1,fonttitle=\bfseries}
+\newtcolorbox{exbox}[1][]{colback=green!5,colframe=green!50!black,title=#1,fonttitle=\bfseries}
+\newtcolorbox{tipbox}[1][]{colback=orange!5,colframe=orange!50!black,title=#1,fonttitle=\bfseries}
+
+\newcommand{\E}{\mathbb{E}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{Toutes les formules du RL}}\\[0.3cm]
+{\large Avec les différentes écritures et quand les utiliser}
+\end{center}
+
+\vspace{0.5cm}
+
+%% ============================================================
+\section{Gain $G$ (3 écritures)}
+%% ============================================================
+
+\begin{formbox}[Forme 1 -- Somme longue (la plus intuitive)]
+$$G_t = r_t + \gamma \, r_{t+1} + \gamma^2 \, r_{t+2} + \gamma^3 \, r_{t+3} + \cdots$$
+\end{formbox}
+
+\begin{formbox}[Forme 2 -- Somme compacte $\Sigma$ (la plus propre pour l'examen)]
+$$\boxed{G_t = \sum_{k=0}^{\infty} \gamma^k \, r_{t+k}}$$
+\end{formbox}
+
+\begin{formbox}[Forme 3 -- Récursion (celle qui mène à Bellman)]
+$$G_t = r_t + \gamma \, G_{t+1}$$
+\end{formbox}
+
+\begin{exbox}[Exemple numérique -- $\gamma = 0.9$, récompenses $[10, 5, 3, 1]$]
+\begin{align*}
+G_3 &= 1 \\
+G_2 &= 3 + 0.9 \times 1 = 3.9 \\
+G_1 &= 5 + 0.9 \times 3.9 = 8.51 \\
+G_0 &= 10 + 0.9 \times 8.51 = \mathbf{17.66}
+\end{align*}
+\end{exbox}
+
+%% ============================================================
+\section{Value Function $V^\pi(s)$ (4 écritures)}
+%% ============================================================
+
+\begin{formbox}[Forme 1 -- Définition (pour Q3a de l'examen)]
+$$\boxed{V^\pi(s) = \E\left[G_t \;\middle|\; S_t = s\right]}$$
+\textit{``La moyenne du gain en partant de l'état $s$, en suivant la politique $\pi$.''}
+\end{formbox}
+
+\begin{formbox}[Forme 2 -- Somme développée]
+$$V^\pi(s) = \E\left[\sum_{k=0}^{\infty} \gamma^k \, r_{t+k} \;\middle|\; S_t = s\right]$$
+C'est la forme 1 où l'on remplace $G_t$ par sa définition.
+\end{formbox}
+
+\begin{formbox}[Forme 3 -- Bellman Expectation (pour Q15)]
+$$\boxed{V^\pi(s) = \E\left[r_t + \gamma \, V^\pi(S_{t+1}) \;\middle|\; S_t = s\right]}$$
+\textit{``Récompense immédiate $+\;\gamma \times$ valeur de l'état suivant.''}
+\end{formbox}
+
+\begin{formbox}[Forme 4 -- Bellman développée (avec les probas)]
+$$V^\pi(s) = \sum_{a} \pi(a|s) \left[\sum_{r} r \, p(r|s,a) \;+\; \gamma \sum_{s'} p(s'|s,a) \, V^\pi(s')\right]$$
+C'est la forme 3 où l'espérance est écrite explicitement.
+\end{formbox}
+
+\begin{formbox}[Bellman Optimality (pour la politique optimale)]
+$$\boxed{V^*(s) = \max_a \; \E\left[r_t + \gamma \, V^*(S_{t+1}) \;\middle|\; S_t = s, \, A_t = a\right]}$$
+\end{formbox}
+
+%% ============================================================
+\section{Action-Value Function $Q^\pi(s,a)$ (4 écritures)}
+%% ============================================================
+
+\begin{formbox}[Forme 1 -- Définition (pour Q3b de l'examen)]
+$$\boxed{Q^\pi(s,a) = \E\left[G_t \;\middle|\; S_t = s, \, A_t = a\right]}$$
+\textit{``La moyenne du gain en partant de $s$, en prenant l'action $a$, puis en suivant $\pi$.''}
+\end{formbox}
+
+\begin{formbox}[Forme 2 -- Via $V$ (one-step lookahead)]
+$$Q^\pi(s,a) = \E\left[r_t + \gamma \, V^\pi(S_{t+1}) \;\middle|\; S_t = s, \, A_t = a\right]$$
+\textit{``Récompense $+\;\gamma \times V$ de l'état d'après.''}
+\end{formbox}
+
+\begin{formbox}[Forme 3 -- Bellman pour $Q$ (base de SARSA)]
+$$\boxed{Q^\pi(s,a) = \E\left[r_t + \gamma \, Q^\pi(S_{t+1}, A_{t+1}) \;\middle|\; S_t = s, \, A_t = a\right]}$$
+\textit{``Récompense $+\;\gamma \times Q$ de l'état-action d'après.''}
+\end{formbox}
+
+\begin{formbox}[Forme 4 -- Bellman Optimality pour $Q^*$ (base de Q-Learning)]
+$$\boxed{Q^*(s,a) = \E\left[r_t + \gamma \, \max_{a'} Q^*(S_{t+1}, a') \;\middle|\; S_t = s, \, A_t = a\right]}$$
+\textit{``Récompense $+\;\gamma \times$ le meilleur $Q$ possible après.''}
+\end{formbox}
+
+%% ============================================================
+\section{Lien entre $V$, $Q$ et $G$}
+%% ============================================================
+
+\begin{formbox}[Relations fondamentales]
+\begin{align}
+V^\pi(s) &= \sum_a \pi(a|s) \; Q^\pi(s,a) && \text{$V$ = moyenne de $Q$ sur les actions} \\[6pt]
+Q^\pi(s,a) &= \E\left[r + \gamma \, V^\pi(s') \;\middle|\; s, a\right] && \text{$Q$ = récompense + $\gamma \, V$ suivant} \\[6pt]
+\pi^*(s) &= \arg\max_a \; Q^*(s,a) && \text{Politique optimale depuis $Q^*$} \\[6pt]
+V^*(s) &= \max_a \; Q^*(s,a) && \text{$V^*$ = le meilleur $Q^*$}
+\end{align}
+\end{formbox}
+
+\begin{exbox}[Analogie -- Carrefour routier]
+\begin{itemize}[nosep]
+\item $G$ = le temps total d'UN trajet précis
+\item $V(s)$ = ``ce carrefour est bien situé en moyenne'' (score du lieu)
+\item $Q(s, a)$ = ``ce carrefour est bien SI tu vas à gauche'' (score du lieu + direction)
+\item $V(s) = 0.5 \times Q(s, \text{gauche}) + 0.5 \times Q(s, \text{droite})$ si politique 50/50
+\end{itemize}
+\end{exbox}
+
+%% ============================================================
+\section{Règles de mise à jour des algorithmes}
+%% ============================================================
+
+\begin{formbox}[Monte Carlo (MC) -- pas de bootstrapping]
+$$V(S_t) \;\leftarrow\; V(S_t) + \alpha \Big[\underbrace{G_t}_{\text{retour complet}} - V(S_t)\Big]$$
+\end{formbox}
+
+\begin{formbox}[TD(0) -- avec bootstrapping]
+$$V(S_t) \;\leftarrow\; V(S_t) + \alpha \Big[\underbrace{r_t + \gamma \, V(S_{t+1})}_{\text{TD target}} - V(S_t)\Big]$$
+\end{formbox}
+
+\begin{formbox}[SARSA -- On-Policy TD Control]
+$$\boxed{Q(S_t, A_t) \;\leftarrow\; Q(S_t, A_t) + \alpha \Big[r_t + \gamma \, Q(S_{t+1}, \textcolor{red}{A_{t+1}}) - Q(S_t, A_t)\Big]}$$
+$A_{t+1}$ = action \textbf{réellement prise} ($\varepsilon$-greedy) $\;\Rightarrow\;$ \textbf{on-policy}
+\end{formbox}
+
+\begin{formbox}[Q-Learning -- Off-Policy TD Control]
+$$\boxed{Q(S_t, A_t) \;\leftarrow\; Q(S_t, A_t) + \alpha \Big[r_t + \gamma \, \textcolor{red}{\max_{a'}} \, Q(S_{t+1}, a') - Q(S_t, A_t)\Big]}$$
+$\max_{a'}$ = meilleure action \textbf{théorique} $\;\Rightarrow\;$ \textbf{off-policy}
+\end{formbox}
+
+\begin{formbox}[REINFORCE -- Policy Gradient (Monte Carlo)]
+$$\theta \;\leftarrow\; \theta + \alpha \, \nabla_\theta \log \pi_\theta(A_t | S_t) \; G_t$$
+\end{formbox}
+
+\begin{formbox}[Policy Gradient Theorem]
+$$\boxed{\nabla_\theta J(\theta) = \E\left[\sum_t \nabla_\theta \log \pi_\theta(A_t | S_t) \; G_t\right]}$$
+Permet d'estimer le gradient \textbf{sans connaître le modèle} de l'environnement.
+\end{formbox}
+
+%% ============================================================
+\section{Tableau récapitulatif -- Quelle formule pour quelle question}
+%% ============================================================
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lll}
+\toprule
+\textbf{Question examen} & \textbf{Ce qu'on écrit} & \textbf{Forme} \\
+\midrule
+Q3a -- Définition de $V$ & $V^\pi(s) = \E[G_t \mid S_t = s]$ & Définition \\
+Q3b -- Définition de $Q$ & $Q^\pi(s,a) = \E[G_t \mid S_t = s, A_t = a]$ & Définition \\
+Q3c -- Définition de $G$ & $G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}$ & Somme $\Sigma$ \\
+Q15 -- Équation de Bellman & $V^\pi(s) = \E[r + \gamma V^\pi(s') \mid s]$ & Bellman Expect. \\
+Q16 -- Calcul de $V$ & $V(s) = R(s) + \gamma \sum_{s'} P(s'|s) V(s')$ & Bellman développée \\
+Q21 -- Q-Learning & $Q(s,a) \leftarrow Q + \alpha[r + \gamma \max Q(s',a') - Q]$ & Mise à jour \\
+Q29 -- Policy Gradient & $\nabla J = \E[\nabla \log \pi \cdot G_t]$ & PG Theorem \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tipbox}[Conseil examen]
+Pour les questions de \textbf{définition} (Q3a, Q3b, Q3c) : utilise les formes avec $\E[G|\cdots]$, c'est les plus courtes et claires.\\
+Garde les formes \textbf{Bellman} pour la question 15 et les calculs (Q16).\\
+Garde les formes de \textbf{mise à jour} pour identifier les algorithmes (Q21).
+\end{tipbox}
+
+\end{document}

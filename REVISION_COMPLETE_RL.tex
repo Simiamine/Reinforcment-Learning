@@ -1,0 +1,887 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage[pdfencoding=auto]{hyperref}
+\usepackage{tikz}
+\usepackage{eurosym}
+
+\geometry{margin=1.8cm, top=2.5cm, bottom=2cm, headheight=14pt}
+\pagestyle{fancy}
+\fancyhead[L]{\textbf{Fiche de Révision Complète -- RL}}
+\fancyhead[R]{EFREI 2024/2025}
+\fancyfoot[C]{\thepage}
+
+%% --- Boîtes colorées ---
+\newtcolorbox{formbox}[1][]{colback=blue!5,colframe=blue!50!black,title={#1},fonttitle=\bfseries}
+\newtcolorbox{exbox}[1][]{colback=green!5,colframe=green!50!black,title={#1},fonttitle=\bfseries}
+\newtcolorbox{tipbox}[1][]{colback=orange!5,colframe=orange!50!black,title={#1},fonttitle=\bfseries}
+\newtcolorbox{exambox}[1][]{colback=red!5,colframe=red!60!black,title={#1},fonttitle=\bfseries}
+\newtcolorbox{tierbox}[2][]{colback=#2!8,colframe=#2!60!black,title={#1},fonttitle=\bfseries\Large,boxrule=1.2pt}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+
+\begin{document}
+
+%% ============================================================
+%% TITRE
+%% ============================================================
+\begin{center}
+{\Huge \textbf{Fiche de Révision Complète}}\\[0.3cm]
+{\LARGE Reinforcement Learning --- EFREI 2024/2025}\\[0.4cm]
+{\large Toutes les notions classées par priorité, avec formules et exemples d'examen}
+\end{center}
+
+\vspace{0.3cm}
+
+\begin{tipbox}[Guide de lecture -- Les TIERs]
+\begin{itemize}[nosep]
+\item \textbf{TIER S} : Apprendre EN PREMIER. Quasi-certain de tomber. Facile, gros gain de points. ($\sim$20 pts)
+\item \textbf{TIER A} : Apprendre EN SECOND. Très probable. Définitions courtes, 1pt chacune. ($\sim$10 pts)
+\item \textbf{TIER B} : Apprendre ENSUITE. Probable. Demande un peu plus de compréhension. ($\sim$10 pts)
+\item \textbf{TIER C} : Apprendre SI TEMPS RESTANT. Possible ou bonus. ($\sim$6 pts + bonus)
+\end{itemize}
+\end{tipbox}
+
+\vspace{0.3cm}
+
+%% ############################################################
+%% TIER S
+%% ############################################################
+\begin{tierbox}[TIER S --- PRIORITÉ ABSOLUE ($\sim$20 pts, 30 min d'apprentissage)]{violet}
+\end{tierbox}
+
+%% ============================================================
+\section{S1. Le schéma général du RL (3 pts)}
+%% ============================================================
+
+\begin{formbox}[La boucle Agent--Environnement]
+\begin{center}
+\begin{tikzpicture}[>=stealth, thick, node distance=4.5cm]
+  \node[draw, rounded corners, minimum width=2.2cm, minimum height=1cm, fill=blue!10] (agent) {\textbf{Agent}};
+  \node[draw, rounded corners, minimum width=2.8cm, minimum height=1cm, fill=green!10, right of=agent] (env) {\textbf{Environnement}};
+  \draw[->, line width=1.2pt] ([yshift=4pt]agent.east) -- node[above]{\small $A_t$} ([yshift=4pt]env.west);
+  \draw[<-, line width=1.2pt] ([yshift=-4pt]agent.east) -- node[below]{\small $S_{t+1},\; R_{t+1}$} ([yshift=-4pt]env.west);
+\end{tikzpicture}
+\end{center}
+\textbf{Boucle à chaque pas de temps $t$ :}
+\begin{enumerate}[nosep]
+\item L'agent observe l'état $S_t$ et reçoit la récompense $R_t$
+\item L'agent choisit et exécute l'action $A_t$
+\item L'environnement produit le nouvel état $S_{t+1}$ et la récompense $R_{t+1}$
+\item $t \leftarrow t+1$, on recommence
+\end{enumerate}
+\end{formbox}
+
+\begin{formbox}[Les 5 variables à définir]
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l p{11cm}@{}}
+\toprule
+\textbf{Variable} & \textbf{Définition} \\
+\midrule
+\textbf{Agent} & Système qui prend des décisions séquentielles pour maximiser ses récompenses cumulées \\
+\textbf{Environnement} & Système externe avec lequel l'agent interagit ; produit états et récompenses \\
+\textbf{État} $S_t$ & Description complète de la situation actuelle de l'environnement \\
+\textbf{Action} $A_t$ & Décision ou mouvement effectué par l'agent dans un état donné \\
+\textbf{Récompense} $R_t$ & Signal numérique de feedback évaluant la qualité de l'action \\
+\bottomrule
+\end{tabular}
+\end{formbox}
+
+\begin{exbox}[Analogie -- Dressage d'un chien]
+Chien = \textbf{Agent} \quad|\quad Monde = \textbf{Environnement} \quad|\quad Ce qu'il voit = \textbf{État}\\
+Ce qu'il fait (s'asseoir) = \textbf{Action} \quad|\quad Biscuit ou ``non\,!'' = \textbf{Récompense}\\
+Le chien apprend à maximiser ses biscuits $=$ c'est exactement le RL.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q1, 3 pts)]
+\textit{``Schématisez le cadre général du RL. Nommez et définissez les variables.''}\\[4pt]
+\textbf{Ce qu'on attend} : le schéma Agent $\leftrightarrow$ Environnement avec les flèches $A_t$, $S_{t+1}$, $R_{t+1}$, puis le tableau des 5 définitions.
+\end{exambox}
+
+%% ============================================================
+\section{S2. Définition d'un MDP (1 pt)}
+%% ============================================================
+
+\begin{formbox}[MDP = Markov Decision Process]
+Un MDP est un tuple $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$ où :
+\begin{itemize}[nosep]
+\item $\mathcal{S}$ : ensemble (fini) d'états
+\item $\mathcal{A}$ : ensemble (fini) d'actions
+\item $P$ : probabilités de transition $\;\to\; p(s'|s, a)$
+\item $R$ : fonction de récompense $\;\to\; p(r|s, a)$
+\item $\gamma$ : facteur d'actualisation (discount factor)
+\end{itemize}
+\textbf{Propriété de Markov} :
+$$P(S_{t+1} \mid S_t, A_t) = P(S_{t+1} \mid S_0, S_1, \ldots, S_t, A_t)$$
+L'état futur ne dépend \textbf{que} de l'état présent et de l'action, \textbf{pas} de l'historique.
+\end{formbox}
+
+\begin{exbox}[Analogie -- Jeu d'échecs]
+$\mathcal{S}$ = toutes les positions du plateau, $\mathcal{A}$ = coups légaux, $R$ = $+1$ victoire / $-1$ défaite.\\
+\textbf{Propriété de Markov} : pour jouer, il suffit de voir le plateau actuel, pas comment on y est arrivé.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q2, 1 pt)]
+\textit{``Qu'est-ce qu'un MDP et comment le définit-on ?''}\\[4pt]
+\textbf{Réponse} : donner le tuple $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$ + propriété de Markov.
+\end{exambox}
+
+%% ============================================================
+\section[S3. Les 3 definitions V, Q, G (3 pts)]{S3. Les 3 définitions : $V$, $Q$, $G$ (3 pts)}
+%% ============================================================
+
+\begin{formbox}[Gain $G$ -- cumulative discounted reward]
+$$\boxed{G_t = \sum_{k=0}^{\infty} \gamma^k \, r_{t+k} = r_t + \gamma \, r_{t+1} + \gamma^2 \, r_{t+2} + \cdots}$$
+Forme récursive : $G_t = r_t + \gamma \, G_{t+1}$
+\end{formbox}
+
+\begin{formbox}[Value Function $V^\pi(s)$ -- state-value]
+$$\boxed{V^\pi(s) = \E\!\left[G_t \;\middle|\; S_t = s\right]}$$
+L'espérance du gain en partant de l'état $s$, en suivant la politique $\pi$.
+\end{formbox}
+
+\begin{formbox}[Action-Value Function $Q^\pi(s,a)$]
+$$\boxed{Q^\pi(s,a) = \E\!\left[G_t \;\middle|\; S_t = s,\; A_t = a\right]}$$
+L'espérance du gain en partant de $s$, en prenant l'action $a$, puis en suivant $\pi$.
+\end{formbox}
+
+\begin{formbox}[Liens entre $V$ et $Q$]
+\begin{align*}
+V^\pi(s) &= \sum_a \pi(a|s) \; Q^\pi(s,a) && \text{$V$ = moyenne de $Q$ sur les actions}\\
+Q^\pi(s,a) &= \E\!\left[r + \gamma \, V^\pi(s') \;\middle|\; s, a\right] && \text{$Q$ = récompense + $\gamma V$ suivant}
+\end{align*}
+\end{formbox}
+
+\begin{exbox}[Analogie -- GPS dans une ville]
+$G$ = temps total restant pour un trajet précis.\\
+$V(s)$ = ``à quel point cet endroit est bien situé ?'' (centre-ville $= V$ élevé).\\
+$Q(s, a)$ = ``si je suis ici ET que je prends cette rue, c'est bien ?''
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q3a/b/c, 3$\times$1 pt)]
+\textit{``Donnez la définition de la Value Function $V$, de la Q-function $Q$, et du Gain $G$.''}\\[4pt]
+\textbf{Réponses} : les 3 formules encadrées ci-dessus avec $\E[G_t | \cdots]$.
+\end{exambox}
+
+%% ============================================================
+\section[S4. Discount Factor gamma (1 pt)]{S4. Discount Factor $\gamma$ (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Définition et rôle de $\gamma$]
+$\gamma \in [0, 1]$ pondère l'importance des récompenses futures vs immédiates.
+\begin{itemize}[nosep]
+\item $\gamma = 0$ $\;\to\;$ agent \textbf{myope} (ne regarde que la récompense immédiate)
+\item $\gamma \to 1$ $\;\to\;$ agent \textbf{prévoyant} (valorise autant le futur que le présent)
+\item Quand il n'y a pas d'état terminal, $\gamma < 1$ \textbf{garantit la convergence} du gain $G$
+\end{itemize}
+\end{formbox}
+
+\begin{exbox}[Analogie -- Argent dans le temps]
+Préfères-tu 100\,\euro{} aujourd'hui ou 100\,\euro{} dans 1 an ? Évidemment aujourd'hui. $\gamma = 0.9$ signifie que 100\,\euro{} dans 1 an ne valent que 90\,\euro{} aujourd'hui. Plus $\gamma$ est petit, plus l'agent est impatient.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q4, 1 pt)]
+\textit{``Qu'est-ce que le discount factor $\gamma$ et à quoi sert-il ?''}\\[4pt]
+\textbf{Réponse} : définition $\gamma \in [0,1]$ + rôle (vision temporelle + convergence).
+\end{exambox}
+
+%% ============================================================
+\section[S5. Politique pi (revient partout)]{S5. Politique $\pi$ (revient partout)}
+%% ============================================================
+
+\begin{formbox}[Types de politique]
+\textbf{Déterministe} : $a = \pi(s)$ $\;\to\;$ une action précise par état.\\[4pt]
+\textbf{Stochastique} : $\pi(a|s) = P(A=a \mid S=s)$ $\;\to\;$ distribution de probabilité.
+$$\sum_a \pi(a|s) = 1 \quad \forall\, s$$
+\textbf{Politique optimale} $\pi^*$ : maximise $V(s)$ pour tout état.
+$$\pi^*(s) = \arg\max_a Q^*(s, a)$$
+\end{formbox}
+
+\begin{exbox}[Analogie -- Conduite]
+\textbf{Déterministe} : au feu rouge, je freine TOUJOURS.\\
+\textbf{Stochastique} : au feu orange, 70\% je freine, 30\% je passe.\\
+\textbf{Optimale} : le conducteur parfait qui prend toujours la meilleure décision.
+\end{exbox}
+
+%% ============================================================
+\section{S6. Équation de Bellman (2+ pts)}
+%% ============================================================
+
+\begin{formbox}[Bellman Expectation (pour une politique $\pi$ donnée)]
+$$\boxed{V^\pi(s) = \E\!\left[r_t + \gamma \, V^\pi(S_{t+1}) \;\middle|\; S_t = s\right]}$$
+Forme développée avec les probabilités :
+$$V^\pi(s) = \sum_{a} \pi(a|s) \left[\sum_{r} r \, p(r|s,a) \;+\; \gamma \sum_{s'} p(s'|s,a) \, V^\pi(s')\right]$$
+\textit{``Valeur d'un état = récompense immédiate $+\; \gamma \times$ valeur de l'état suivant.''}
+\end{formbox}
+
+\begin{formbox}[Bellman Optimality (pour la politique optimale)]
+$$\boxed{V^*(s) = \max_a \; \E\!\left[r_t + \gamma \, V^*(S_{t+1}) \;\middle|\; S_t = s,\; A_t = a\right]}$$
+$$\boxed{Q^*(s, a) = \E\!\left[r + \gamma \, \max_{a'} Q^*(s', a') \;\middle|\; s, a\right]}$$
+\end{formbox}
+
+\begin{exbox}[Analogie -- Prix d'un appartement]
+Valeur de l'appart = loyer de ce mois (récompense immédiate) $+\; \gamma \times$ valeur de l'appart le mois prochain (valeur future). Pas besoin de calculer 50 ans de loyers.
+\end{exbox}
+
+\begin{formbox}[Savoir l'appliquer -- Exemple de calcul]
+Deux états $s_1, s_2$, une action, $\gamma = 0.9$ :
+\begin{itemize}[nosep]
+\item Depuis $s_2$ : reste en $s_2$, récompense 3 $\;\to\; V(s_2) = 3 + 0.9 \cdot V(s_2) \;\to\; V(s_2) = 30$
+\item Depuis $s_1$ : va en $s_2$, récompense 5 $\;\to\; V(s_1) = 5 + 0.9 \times 30 = 32$
+\end{itemize}
+\textbf{Méthode} : écrire l'équation de Bellman pour chaque état, résoudre le système linéaire.
+\end{formbox}
+
+\begin{exambox}[Questions type examen (Q15, 1 pt + Q16, 1 pt)]
+\textit{Q15 : ``Donnez l'équation de Bellman pour $V$ et expliquez pourquoi elle est utile.''}\\
+\textbf{Réponse} : formule de Bellman Expectation + ``transforme un problème global en récursion locale''.\\[6pt]
+\textit{Q16 : ``Calculez la valeur manquante dans ce MDP (diagramme donné, $\gamma=1$).''}\\
+\textbf{Méthode} : (1) Écrire Bellman pour le n\oe{}ud manquant, (2) substituer les $V$ connus, (3) résoudre le système si interdépendance entre n\oe{}uds.
+\end{exambox}
+
+%% ============================================================
+\section{S7. Pseudo-code d'un algorithme DP (3 pts)}
+%% ============================================================
+
+\begin{formbox}[Value Iteration (le plus simple -- à connaître par c\oe{}ur)]
+{\ttfamily
+\begin{tabbing}
+\hspace{6mm}\=\hspace{6mm}\=\kill
+\textbf{Entrée :} MDP $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$\\
+Initialiser $V(s) = 0$ pour tout $s \in \mathcal{S}$\\[2pt]
+\textbf{Répéter} jusqu'à convergence ($\max_s |V_{\text{new}}(s) - V_{\text{old}}(s)| < \varepsilon$) :\\
+\> \textbf{Pour} chaque état $s \in \mathcal{S}$ :\\
+\>\> $V(s) \leftarrow \max_a \left[\sum_r r \cdot p(r|s,a) + \gamma \sum_{s'} p(s'|s,a) \cdot V(s')\right]$\\[4pt]
+Extraire $\pi^*(s) = \arg\max_a \left[\sum_r r \cdot p(r|s,a) + \gamma \sum_{s'} p(s'|s,a) \cdot V(s')\right]$\\
+\textbf{Retourner} $V^*, \pi^*$
+\end{tabbing}}
+\end{formbox}
+
+\begin{formbox}[Policy Iteration (alternative)]
+{\ttfamily
+\begin{tabbing}
+\hspace{6mm}\=\hspace{6mm}\=\kill
+Initialiser $\pi(s)$ arbitrairement\\[2pt]
+\textbf{Répéter} jusqu'à stabilité de $\pi$ :\\
+\> 1. \textbf{Policy Evaluation :}\\
+\>\> Résoudre $V^\pi(s) = \sum_r r\cdot p(r|s,\pi(s)) + \gamma \sum_{s'} p(s'|s,\pi(s)) \cdot V^\pi(s')$\\[2pt]
+\> 2. \textbf{Policy Improvement :}\\
+\>\> $\pi(s) \leftarrow \arg\max_a \left[\sum_r r\cdot p(r|s,a) + \gamma \sum_{s'} p(s'|s,a) \cdot V(s')\right]$
+\end{tabbing}}
+\end{formbox}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lll}
+\toprule
+\textbf{Algorithme} & \textbf{Objectif} & \textbf{Équation} \\
+\midrule
+Policy Evaluation & Calculer $V^\pi$ pour $\pi$ fixé & Bellman Expectation \\
+Policy Iteration & Trouver $\pi^*$ & Bellman Expect.\,+\,Greedy \\
+Value Iteration & Trouver $V^*$ et $\pi^*$ & Bellman Optimality \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{exbox}[Analogie -- Labyrinthe]
+Imagine un labyrinthe de 4 cases. Au départ, $V = 0$ partout. À chaque itération, on met à jour chaque case : ``si je prends la meilleure direction, récompense $+$ valeur de la case suivante''. Après quelques tours, les valeurs se stabilisent et le chemin optimal apparaît.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q17, 3 pts)]
+\textit{``Donnez le pseudo-code d'un algorithme de programmation dynamique.''}\\[4pt]
+\textbf{Ce qu'on attend} : pseudo-code complet de Value Iteration OU Policy Iteration, avec critère d'arrêt et extraction de $\pi^*$.
+\end{exambox}
+
+%% ============================================================
+\section[S8. Les 4 grandes dichotomies (4x1 pt)]{S8. Les 4 grandes dichotomies (4$\times$1 pt)}
+%% ============================================================
+
+\begin{formbox}[Model-Free vs Model-Based]
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{6.5cm} p{6.5cm}@{}}
+\toprule
+\textbf{Model-Free} & \textbf{Model-Based} \\
+\midrule
+Apprend \textbf{directement} par interaction & Utilise un \textbf{modèle} de l'env.\ ($P, R$) \\
+Pas besoin de connaître $P$ ni $R$ & Besoin de $P$ et $R$ (connus ou appris) \\
+$-$ Beaucoup de données & $+$ Meilleure sample efficiency \\
+Ex: Q-Learning, SARSA, PPO & Ex: Value Iteration, MuZero \\
+\bottomrule
+\end{tabular}
+\end{formbox}
+
+\begin{formbox}[Value-Based vs Policy-Based]
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{6.5cm} p{6.5cm}@{}}
+\toprule
+\textbf{Value-Based} & \textbf{Policy-Based} \\
+\midrule
+Apprend $V(s)$ ou $Q(s,a)$ & Apprend directement $\pi(a|s)$ \\
+Politique \textbf{déduite} (greedy) & Pas de valeur explicite \\
+Fonctionne bien en \textbf{discret} & Fonctionne aussi en \textbf{continu} \\
+Ex: Q-Learning, DQN & Ex: REINFORCE, TRPO \\
+\bottomrule
+\end{tabular}\\[4pt]
+\textbf{Actor-Critic} $=$ les deux : politique (actor) $+$ valeur (critic). Ex: A2C, PPO, SAC, TD3.
+\end{formbox}
+
+\begin{formbox}[On-Policy vs Off-Policy]
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{6.5cm} p{6.5cm}@{}}
+\toprule
+\textbf{On-Policy} & \textbf{Off-Policy} \\
+\midrule
+Apprend la valeur de la politique \textbf{qu'il suit} & Apprend la valeur d'une \textbf{autre} politique \\
+Données ``fraîches'' requises & Peut réutiliser d'anciennes données \\
+Ex: SARSA, A2C, PPO & Ex: Q-Learning, DQN, SAC, TD3 \\
+\bottomrule
+\end{tabular}\\[4pt]
+\textbf{Mnémotechnique} : SARSA $\to$ $Q(s', \textcolor{red}{a'})$ (action réelle) $=$ on-policy. Q-Learning $\to$ $\textcolor{red}{\max_{a'}} Q(s', a')$ $=$ off-policy.
+\end{formbox}
+
+\begin{formbox}[TD vs Monte Carlo]
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{6.5cm} p{6.5cm}@{}}
+\toprule
+\textbf{Temporal Difference (TD)} & \textbf{Monte Carlo (MC)} \\
+\midrule
+Met à jour à \textbf{chaque pas} & Met à jour en \textbf{fin d'épisode} \\
+\textbf{Bootstrapping} (estimation $\to$ estimation) & Retour complet $G_t$ (pas de bootstrap) \\
+\textbf{Biaisé}, faible variance & \textbf{Non biaisé}, haute variance \\
+Fonctionne en continu & Épisodes complets requis \\
+\bottomrule
+\end{tabular}\\[4pt]
+\textbf{Formules clés} :\\
+MC : $V(s) \leftarrow V(s) + \alpha \big[\mathbf{G_t} - V(s)\big]$\\
+TD(0) : $V(s) \leftarrow V(s) + \alpha \big[\mathbf{r + \gamma V(s')} - V(s)\big]$
+\end{formbox}
+
+\begin{exbox}[Analogies pour les 4 dichotomies]
+\textbf{Model-Free/Based} : Cuisiner par essai-erreur (free) vs suivre une recette (based).\\
+\textbf{Value/Policy} : Noter chaque case sur 10 et aller à la meilleure (value) vs apprendre une stratégie directe (policy).\\
+\textbf{On/Off-Policy} : Apprendre de tes propres copies (on) vs lire les copies des autres (off).\\
+\textbf{TD/MC} : Recalculer ton temps de marathon à chaque km (TD) vs attendre la fin pour regarder le chrono (MC).
+\end{exbox}
+
+\begin{exambox}[Questions type examen (Q6--Q9, 4$\times$1 pt)]
+\textit{Q6 : ``Model-Free vs Model-Based ?'' -- Q7 : ``Value-Based vs Policy-Based ?''}\\
+\textit{Q8 : ``On-Policy vs Off-Policy ?'' -- Q9 : ``TD vs Monte Carlo ?''}\\[4pt]
+\textbf{Pour chacune} : tableau 2 colonnes avec les différences clés + un exemple d'algorithme de chaque côté.
+\end{exambox}
+
+\newpage
+
+%% ############################################################
+%% TIER A
+%% ############################################################
+\begin{tierbox}[TIER A --- TRÈS RENTABLE ($\sim$10 pts, 20 min)]{teal}
+\end{tierbox}
+
+%% ============================================================
+\section{A1. Exploration vs Exploitation (1--2 pts)}
+%% ============================================================
+
+\begin{formbox}[Le dilemme et les stratégies]
+\textbf{Exploration} : essayer des actions inconnues pour découvrir de meilleures stratégies.\\
+\textbf{Exploitation} : choisir les actions connues comme les meilleures.\\[6pt]
+\textbf{$\varepsilon$-greedy (le plus demandé)} :
+$$\text{Avec proba } (1-\varepsilon) : a = \arg\max_a Q(s,a) \quad \text{(exploitation)}$$
+$$\text{Avec proba } \varepsilon : a = \text{action aléatoire} \quad \text{(exploration)}$$
+On peut faire décroître $\varepsilon$ au fil du temps.\\[4pt]
+Autres stratégies : \textbf{Softmax/Boltzmann} ($P(a) \propto e^{Q(s,a)/\tau}$), \textbf{UCB} ($Q + \text{bonus d'incertitude}$).
+\end{formbox}
+
+\begin{exbox}[Analogie -- Choisir un restaurant]
+\textbf{Exploitation} = retourner à ta pizzeria préférée. \textbf{Exploration} = tester un nouveau restaurant coréen.\\
+$\varepsilon$-greedy : 90\% pizzeria, 10\% nouveau. Au fil des années, tu baisses le $\varepsilon$.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q11, 1 pt)]
+\textit{``Expliquez le dilemme Exploration/Exploitation et donnez une stratégie.''}\\[4pt]
+\textbf{Réponse} : définir le dilemme $+$ décrire $\varepsilon$-greedy avec avantages/inconvénients.
+\end{exambox}
+
+%% ============================================================
+\section{A2. Bootstrapping (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Définition]
+\textbf{Bootstrapping} = mettre à jour une estimation en utilisant \textbf{une autre estimation} (pas la valeur réelle).\\[4pt]
+\textbf{En TD} : $V(s) \leftarrow V(s) + \alpha\big[r + \gamma \cdot \underbrace{V(s')}_{\text{estimation !}} - V(s)\big]$ \quad $\checkmark$ bootstrapping\\[4pt]
+\textbf{En MC} : $V(s) \leftarrow V(s) + \alpha\big[\underbrace{G_t}_{\text{vrai retour}} - V(s)\big]$ \quad $\times$ pas de bootstrapping\\[4pt]
+\textbf{Conséquence} : biais (on se fie à nos estimations) mais variance réduite.
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q12, 1 pt)]
+\textit{``Qu'est-ce que le bootstrapping ? Donnez un exemple.''}\\[4pt]
+\textbf{Réponse} : définition + formule TD montrant que $V(s')$ est une estimation.
+\end{exambox}
+
+%% ============================================================
+\section{A3. Actor-Critic (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Architecture Actor-Critic]
+\begin{itemize}[nosep]
+\item \textbf{Actor (Acteur)} : apprend la politique $\pi_\theta$ $\;\to\;$ ``quelle action prendre ?''
+\item \textbf{Critic (Critique)} : apprend $V$ ou $Q$ $\;\to\;$ ``cette action est-elle bonne ?''
+\end{itemize}
+\vspace{4pt}
+\textbf{Fonction Avantage} :
+$$A(s, a) = Q(s, a) - V(s)$$
+$A > 0$ $\to$ action meilleure que la moyenne $\to$ renforcer.\\
+$A < 0$ $\to$ action pire que la moyenne $\to$ décourager.\\[4pt]
+Exemples : A2C, A3C, PPO, SAC, TD3.
+\end{formbox}
+
+\begin{exbox}[Analogie -- Tournage de film]
+\textbf{Actor} = l'acteur qui joue la scène. \textbf{Critic} = le réalisateur qui dit ``C'était bien !'' ou ``On refait !''. L'acteur s'améliore grâce aux retours du réalisateur.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q10, 1 pt)]
+\textit{``Qu'est-ce qu'un algorithme Actor-Critic ?''}\\[4pt]
+\textbf{Réponse} : décrire les 2 composants (actor = politique, critic = valeur) + fonction avantage.
+\end{exambox}
+
+%% ============================================================
+\section{A4. Replay Buffer (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Définition et intérêt]
+Mémoire qui stocke les transitions $(s, a, r, s')$ passées. On tire aléatoirement des mini-batches.
+\begin{enumerate}[nosep]
+\item \textbf{Casse la corrélation temporelle} $\to$ stabilise l'apprentissage
+\item \textbf{Réutilise les données} $\to$ meilleure sample efficiency
+\item \textbf{Indispensable pour l'off-policy} (DQN, SAC, TD3)
+\end{enumerate}
+\textbf{PAS utilisé} en on-policy (PPO, A2C).
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q13, 1 pt)]
+\textit{``Qu'est-ce qu'un Replay Buffer et pourquoi en utiliser un ?''}\\[4pt]
+\textbf{Réponse} : définition + 3 raisons (corrélation, réutilisation, off-policy).
+\end{exambox}
+
+%% ============================================================
+\section{A5. Fonction de récompense efficace (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Principes d'une bonne récompense]
+\begin{itemize}[nosep]
+\item Récompenses \textbf{positives} pour le comportement souhaité
+\item Récompenses \textbf{négatives} (pénalités) pour les comportements indésirables
+\item Doit être \textbf{fréquente et informative} (pas juste à la fin $\to$ problème de récompense sparse)
+\end{itemize}
+\textbf{Exemple -- Drone volant} : $+1$/s en vol stable, $+10$ destination, $-100$ crash, $-0.1$/s (encourage vitesse).
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q5, 1 pt)]
+\textit{``Comment définir une récompense efficace ? Donnez un exemple concret.''}\\[4pt]
+\textbf{Réponse} : 3 principes + un exemple concret avec récompenses positives, négatives et fréquentes.
+\end{exambox}
+
+%% ============================================================
+\section{A6. Q-Learning et SARSA (3+ pts)}
+%% ============================================================
+
+\begin{formbox}[SARSA -- On-Policy TD Control]
+$$\boxed{Q(S_t, A_t) \;\leftarrow\; Q(S_t, A_t) + \alpha \Big[r_t + \gamma \, Q(S_{t+1}, \textcolor{red}{A_{t+1}}) - Q(S_t, A_t)\Big]}$$
+$A_{t+1}$ = action \textbf{réellement prise} ($\varepsilon$-greedy) $\;\Rightarrow\;$ \textbf{on-policy}.
+\end{formbox}
+
+\begin{formbox}[Q-Learning -- Off-Policy TD Control]
+$$\boxed{Q(S_t, A_t) \;\leftarrow\; Q(S_t, A_t) + \alpha \Big[r_t + \gamma \, \textcolor{red}{\max_{a'}} \, Q(S_{t+1}, a') - Q(S_t, A_t)\Big]}$$
+$\max_{a'}$ = meilleure action \textbf{théorique} $\;\Rightarrow\;$ \textbf{off-policy}.
+\end{formbox}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l c c@{}}
+\toprule
+& \textbf{SARSA} & \textbf{Q-Learning} \\
+\midrule
+\textbf{Mise à jour} & $r + \gamma \cdot Q(s', \textcolor{red}{a'})$ & $r + \gamma \cdot \textcolor{red}{\max_{a'}} Q(s', a')$ \\
+\textbf{Type} & On-policy & Off-policy \\
+\textbf{Équation} & Bellman Expectation & Bellman \textbf{Optimality} \\
+\textbf{Comportement} & Prudent & Agressif (vise l'optimal) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{exbox}[Analogie -- Traverser une rivière]
+\textbf{SARSA} (prudent) : tu poses le pied sur chaque pierre et tu notes si elle glisse $\to$ chemin sûr.\\
+\textbf{Q-Learning} (agressif) : tu imagines toujours la meilleure pierre $\to$ chemin optimal théorique, mais tu peux te mouiller pendant l'apprentissage.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q21, $\sim$3 pts)]
+\textit{``Identifiez l'algorithme du pseudo-code suivant. Est-il value-based ou policy-based ? TD ou MC ?''}\\[4pt]
+\textbf{Indice} : si on voit $\max_{a'}$ dans la mise à jour $\to$ Q-Learning (value-based, TD).\\
+Si on voit $a'$ pris par $\varepsilon$-greedy $\to$ SARSA (value-based, TD aussi).
+\end{exambox}
+
+%% ============================================================
+\section{A7--A8. Programmation Dynamique : principe et limites (2 pts)}
+%% ============================================================
+
+\begin{formbox}[Principe de la DP]
+Résoudre un problème complexe en le \textbf{décomposant en sous-problèmes} qui se chevauchent. On résout chaque sous-problème \textbf{une seule fois}, on \textbf{stocke} le résultat, on le \textbf{réutilise}.\\[4pt]
+En RL : on exploite la structure récursive de Bellman $\to$ $V(s) = r + \gamma V(s')$.
+\end{formbox}
+
+\begin{formbox}[Avantages et Inconvénients de la DP]
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{6.5cm} p{6.5cm}@{}}
+\toprule
+\textbf{Avantages} & \textbf{Inconvénients} \\
+\midrule
+Convergence \textbf{garantie} & Nécessite le \textbf{modèle complet} ($P$, $R$) \\
+Solution \textbf{exacte} & \textbf{Coûteux} pour grands espaces (curse of dim.) \\
+Base théorique solide & Planification, pas d'exploration \\
+\bottomrule
+\end{tabular}
+\end{formbox}
+
+\begin{exambox}[Questions type examen (Q14, 1 pt + Q18, 1 pt)]
+\textit{Q14 : ``Principe de la DP au-delà du RL.''} $\to$ Décomposition + stockage + réutilisation.\\
+\textit{Q18 : ``Avantages et inconvénients de la DP.''} $\to$ Tableau ci-dessus.
+\end{exambox}
+
+\newpage
+
+%% ############################################################
+%% TIER B
+%% ############################################################
+\begin{tierbox}[TIER B --- IMPORTANT ($\sim$10 pts, 30 min)]{cyan}
+\end{tierbox}
+
+%% ============================================================
+\section{B1. Cas continu -- 4 concepts (4 pts)}
+%% ============================================================
+
+\begin{formbox}[Le problème du continu]
+\textbf{Exemple} : bras robotique $\to$ angles $\in \R^n$ (états continus), couples moteurs $\in \R^m$ (actions continues).\\[4pt]
+\textbf{Défis} :
+\begin{enumerate}[nosep]
+\item Impossible de \textbf{tabuler} $V(s)$ ou $Q(s,a)$ (espaces infinis)
+\item Nécessite de la \textbf{généralisation} (estimer la valeur d'états jamais visités)
+\item \textbf{Exploration} beaucoup plus difficile (espace infini)
+\item Les algorithmes tabulaires ne fonctionnent plus directement
+\end{enumerate}
+\end{formbox}
+
+\begin{formbox}[Solution : Approximation de fonction]
+On paramétrise $V_\theta(s)$, $Q_\theta(s,a)$ ou $\pi_\theta(a|s)$ par un \textbf{réseau de neurones}.\\
+Le réseau apprend à \textbf{généraliser} depuis les états visités vers les états non visités.\\
+On remplace la table $Q[s][a]$ par une fonction $Q_\theta(s, a)$.
+\end{formbox}
+
+\begin{formbox}[Algorithme pour le continu : PPO]
+\textbf{PPO (Proximal Policy Optimization)} : Actor-Critic, on-policy.\\
+La politique $\pi_\theta$ sort une distribution \textbf{continue} (ex: gaussienne).\\
+Clipped surrogate objective pour la stabilité. Très populaire (RLHF, ChatGPT).\\[4pt]
+Autres : \textbf{SAC} (off-policy, max entropie), \textbf{TD3} (off-policy, déterministe), \textbf{DDPG}.
+\end{formbox}
+
+\begin{exambox}[Questions type examen (Q22--Q25, 4$\times$1 pt)]
+\textit{Q22 : ``Exemple concret de RL en continu.''} $\to$ Bras robotique, voiture autonome.\\
+\textit{Q23 : ``Principaux défis du cas continu.''} $\to$ 4 défis ci-dessus.\\
+\textit{Q24 : ``Outil pour adapter les méthodes discrètes.''} $\to$ Approximation de fonction (réseau de neurones).\\
+\textit{Q25 : ``Un algorithme pour le continu.''} $\to$ PPO (ou SAC, TD3).
+\end{exambox}
+
+%% ============================================================
+\section{B2. Deep RL -- DQN (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Architecture DQN]
+\textbf{Entrée} : état $s$ (ex: pixels Atari).\\
+\textbf{Sortie} : vecteur de Q-values $[Q(s,a_1), Q(s,a_2), \ldots, Q(s,a_n)]$.\\
+\textbf{Action} : $\arg\max$ sur la sortie.\\[4pt]
+\textbf{Innovations clés} :
+\begin{enumerate}[nosep]
+\item \textbf{Replay buffer} : stocke les transitions, mini-batches aléatoires
+\item \textbf{Target network} : second réseau ``gelé'' pour calculer la cible $\to$ stabilise l'apprentissage
+\end{enumerate}
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q28, 1 pt)]
+\textit{``Décrivez l'architecture DQN : entrées et sorties.''}\\[4pt]
+\textbf{Réponse} : état $s$ en entrée $\to$ réseau de neurones $\to$ vecteur de Q-values en sortie $\to$ argmax $\to$ action.
+\end{exambox}
+
+%% ============================================================
+\section{B3. Policy Gradient Theorem (1--2 pts)}
+%% ============================================================
+
+\begin{formbox}[Le théorème]
+$$\boxed{\nabla_\theta J(\theta) = \E\!\left[\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot G_t\right]}$$
+\textbf{Ce que ça signifie} : on peut estimer le gradient de la performance \textbf{sans connaître le modèle}, uniquement en observant des trajectoires.\\[4pt]
+\textbf{Intuition} : trajectoire avec bon retour $\to$ augmenter la proba des actions prises.\\
+Trajectoire avec mauvais retour $\to$ diminuer la proba.
+\end{formbox}
+
+\begin{exbox}[Analogie -- Lancer franc au basket]
+Tu lances 100 fois, tu notes ta technique. Lancers réussis $\to$ répéter la technique. Lancers ratés $\to$ éviter. Après 1000 lancers, tu converges vers la meilleure technique.
+\end{exbox}
+
+\begin{exambox}[Question type examen (Q29a, 1 pt)]
+\textit{``Sur quel théorème repose l'algorithme ? Expliquez.''}\\[4pt]
+\textbf{Réponse} : Policy Gradient Theorem + formule + ``permet d'optimiser sans modèle''.
+\end{exambox}
+
+%% ============================================================
+\section[B4. Fonction objectif J(theta) (1 pt)]{B4. Fonction objectif $J(\theta)$ (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Définition]
+$$\boxed{J(\theta) = \E_{\tau \sim \pi_\theta} \!\left[R(\tau)\right]}$$
+Espérance du retour cumulé sur les trajectoires $\tau$ générées par $\pi_\theta$.\\
+\textbf{Optimisation} : montée de gradient $\;\to\; \theta \leftarrow \theta + \alpha \cdot \nabla_\theta J(\theta)$.
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q27, 1 pt)]
+\textit{``Quelle fonction optimise-t-on quand la politique est paramétrée par $\theta$ ?''}\\[4pt]
+\textbf{Réponse} : $J(\theta) = \E[R(\tau)]$ + gradient ascent.
+\end{exambox}
+
+%% ============================================================
+\section{B5. REINFORCE (1 pt)}
+%% ============================================================
+
+\begin{formbox}[REINFORCE = Monte-Carlo Policy Gradient]
+{\ttfamily
+\begin{tabbing}
+\hspace{6mm}\=\hspace{6mm}\=\kill
+\textbf{Pour} chaque épisode :\\
+\> Générer $\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots)$ en suivant $\pi_\theta$\\
+\> \textbf{Pour} chaque pas $t$ :\\
+\>\> $G_t = \sum_{k=0}^{T-t} \gamma^k \, r_{t+k}$ \quad (retour MC)\\
+\>\> $\theta \leftarrow \theta + \alpha \cdot \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot G_t$
+\end{tabbing}}
+\vspace{2pt}
+\textbf{Caractéristiques} : policy-based, model-free, non biaisé mais \textbf{haute variance}.\\
+\textbf{Amélioration} : ajouter une baseline $V(s)$ $\to$ A2C (Actor-Critic).
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q29c/d, 1--2 pts)]
+\textit{``Limitation concrète de l'algorithme et amélioration possible ?''}\\[4pt]
+\textbf{Réponse} : haute variance du retour MC $\to$ convergence lente. Amélioration : baseline $V(s)$ $\to$ avantage $A(s,a) = G_t - V(s)$ $\to$ Actor-Critic (A2C).
+\end{exambox}
+
+%% ============================================================
+\section{B6. Intérêt des réseaux de neurones en RL (1 pt)}
+%% ============================================================
+
+\begin{formbox}[Pourquoi les réseaux de neurones ?]
+\textbf{Approximateurs de fonctions universels} pour :
+\begin{enumerate}[nosep]
+\item Représenter $V$, $Q$ ou $\pi$ dans des espaces \textbf{très grands ou continus}
+\item \textbf{Généraliser} à des états jamais visités
+\item Traiter des entrées \textbf{complexes} (images, signaux, texte)
+\end{enumerate}
+Sans eux $\to$ limité aux tables $Q[s][a]$ $\to$ petits environnements discrets uniquement.
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q26, 1 pt)]
+\textit{``Quel est l'intérêt principal des réseaux de neurones en RL ?''}\\[4pt]
+\textbf{Réponse} : approximation de fonctions dans des espaces grands/continus + généralisation.
+\end{exambox}
+
+\newpage
+
+%% ############################################################
+%% TIER C
+%% ############################################################
+\begin{tierbox}[TIER C --- BONUS / SI TEMPS RESTANT ($\sim$6 pts + bonus)]{gray}
+\end{tierbox}
+
+%% ============================================================
+\section{C1. PPO -- 3 caractéristiques (1 pt)}
+%% ============================================================
+
+\begin{formbox}[PPO (Proximal Policy Optimization)]
+\begin{enumerate}[nosep]
+\item \textbf{Actor-Critic} : acteur $\pi_\theta$ + critique $V_\phi$
+\item \textbf{Clipped surrogate objective} : limite les mises à jour $\to$ stabilité (trust region de TRPO)
+\item \textbf{Bonus d'entropie} : encourage l'exploration, évite la convergence prématurée
+\end{enumerate}
+On-policy. Utilisé pour RLHF (ChatGPT).
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q30, 1 pt)]
+\textit{``Donnez 3 caractéristiques de PPO.''}\\[4pt]
+\textbf{Réponse} : les 3 points ci-dessus.
+\end{exambox}
+
+%% ============================================================
+\section{C2. Model-Based RL (2 pts + 1 bonus)}
+%% ============================================================
+
+\begin{formbox}[Motivation et difficulté]
+\textbf{Motivation} : \textbf{sample efficiency} $\to$ avec un modèle, l'agent peut \textbf{planifier et simuler} sans interagir réellement. Réduit le nombre d'interactions nécessaires.\\[4pt]
+\textbf{Difficulté principale} : apprendre un modèle fidèle est très dur. Les erreurs \textbf{s'accumulent} au fil des pas de planification (compound error).
+\end{formbox}
+
+\begin{formbox}[MuZero -- Exemple d'algorithme Model-Based]
+\begin{itemize}[nosep]
+\item Apprend un modèle interne (représentation latente) prédisant : valeur, politique, récompense
+\item Utilise \textbf{MCTS} pour planifier
+\item Appliqué à \textbf{Atari} et \textbf{Go}, \textbf{sans connaître les règles}
+\end{itemize}
+\textbf{Lignée} : AlphaGo (règles + données) $\to$ AlphaZero (règles) $\to$ MuZero (rien) $\to$ EfficientZero.
+\end{formbox}
+
+\begin{exambox}[Questions type examen (Q31--Q33, 2 pts + 1 bonus)]
+\textit{Q31 : ``Motivation principale du Model-Based.''} $\to$ Sample efficiency.\\
+\textit{Q32 : ``Principale difficulté.''} $\to$ Compound error du modèle appris.\\
+\textit{Q33 (bonus) : ``Exemple d'algorithme + application.''} $\to$ MuZero + Atari/Go.
+\end{exambox}
+
+%% ============================================================
+\section{C3. Preuve de l'équation de Bellman (3 pts bonus)}
+%% ============================================================
+
+\begin{formbox}[Preuve]
+Par définition : $G = r_0 + \gamma \cdot G_1$ \quad où $G_1$ est le gain à partir de $s_1$.\\[4pt]
+$V^\pi(s) = \E[G \mid s_0=s] = \E[r_0 + \gamma G_1 \mid s_0=s] = \E[r_0 \mid s_0=s] + \gamma \cdot \E[G_1 \mid s_0=s]$\\[4pt]
+Par la \textbf{loi de l'espérance totale} (Fubini) :\\
+$\E[G_1 \mid s_0=s] = \E\!\big[\,\E[G_1 \mid s_0=s, s_1] \;\big|\; s_0=s\big]$\\[4pt]
+Par la \textbf{propriété de Markov} :\\
+$\E[G_1 \mid s_0=s, s_1] = \E[G_1 \mid s_1] = V^\pi(s_1)$\\[4pt]
+Conclusion :
+$$\boxed{V^\pi(s) = \E\!\left[r_0 + \gamma \cdot V^\pi(s_1) \;\middle|\; s_0=s\right] \qquad \blacksquare}$$
+\textbf{Convergence} : l'opérateur de Bellman est \textbf{contractant} ($\gamma < 1$) $\to$ \textbf{théorème de Banach} (point fixe).
+\end{formbox}
+
+\begin{exambox}[Question type examen (Q19, 3 pts bonus)]
+\textit{``Prouvez l'équation de Bellman.''}\\[4pt]
+\textbf{Réponse} : développer $G = r_0 + \gamma G_1$, appliquer espérance totale + Markov.
+\end{exambox}
+
+%% ============================================================
+\section{C4. Algorithmes Deep RL avancés (culture)}
+%% ============================================================
+
+\begin{formbox}[TD3, SAC, RLHF, GRPO]
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l p{10cm}@{}}
+\toprule
+\textbf{Algorithme} & \textbf{Caractéristiques clés} \\
+\midrule
+\textbf{TD3} & Off-policy, actor-critic, continu. Double Q-learning clippé + mises à jour retardées + lissage cible. \\
+\textbf{SAC} & Off-policy, actor-critic, continu. Maximum entropy RL. Deux critiques. \\
+\textbf{RLHF} & Aligner les LLMs via PPO + reward model entraîné sur préférences humaines. \\
+\textbf{GRPO} & DeepSeek. Pas de critic, baseline = moyenne du groupe. KL divergence. Adapté aux LLMs. \\
+\bottomrule
+\end{tabular}
+\end{formbox}
+
+%% ============================================================
+\section{C5. MCTS -- Monte Carlo Tree Search (culture)}
+%% ============================================================
+
+\begin{formbox}[Les 4 étapes de MCTS]
+\begin{enumerate}[nosep]
+\item \textbf{Selection} : descendre dans l'arbre vers les branches prometteuses
+\item \textbf{Expansion} : ajouter un nouveau n\oe{}ud (état)
+\item \textbf{Simulation} : simuler une partie aléatoire depuis ce n\oe{}ud
+\item \textbf{Backpropagation} : remonter le résultat pour mettre à jour les valeurs
+\end{enumerate}
+Utilisé dans AlphaGo/AlphaZero/MuZero.
+\end{formbox}
+
+\newpage
+
+%% ############################################################
+%% RÉSUMÉ ULTRA-CONDENSÉ
+%% ############################################################
+\begin{tierbox}[RÉSUMÉ ULTRA-CONDENSÉ --- La veille de l'examen]{purple}
+\end{tierbox}
+
+\begin{formbox}[Les 10 choses à savoir ABSOLUMENT]
+\begin{enumerate}[nosep]
+\item \textbf{Schéma RL} : Agent $\leftrightarrow$ Environnement $(S, A, R)$ + 5 définitions
+\item \textbf{MDP} $= (\mathcal{S}, \mathcal{A}, P, R, \gamma)$ + propriété de Markov
+\item \textbf{$G$, $V$, $Q$} : $G = \sum \gamma^k r$, \; $V = \E[G|s]$, \; $Q = \E[G|s,a]$
+\item \textbf{$\gamma$} : pondère futur vs présent, assure convergence
+\item \textbf{Bellman} : $V(s) = \E[r + \gamma V(s')|s]$ et savoir l'appliquer
+\item \textbf{Value Iteration ou Policy Iteration} : pseudo-code complet
+\item \textbf{TD vs MC} : bootstrapping vs retour complet, biaisé vs non biaisé
+\item \textbf{Q-Learning vs SARSA} : $\max$ vs action réelle, off vs on policy
+\item \textbf{Policy Gradient Theorem} : $\nabla J = \E[\nabla\log\pi \cdot G_t]$
+\item \textbf{PPO} : actor-critic + clipping + entropie
+\end{enumerate}
+\end{formbox}
+
+\begin{formbox}[Les 6 distinctions à réciter]
+\begin{multicols}{2}
+\begin{itemize}[nosep]
+\item Model-Free vs Model-Based
+\item Value-Based vs Policy-Based
+\item On-Policy vs Off-Policy
+\item TD vs Monte Carlo
+\item Exploration vs Exploitation
+\item Prediction vs Control
+\end{itemize}
+\end{multicols}
+\end{formbox}
+
+\begin{formbox}[Les algorithmes à citer par catégorie]
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l l@{}}
+\toprule
+\textbf{Catégorie} & \textbf{Algorithmes} \\
+\midrule
+DP (model-based) & Policy Evaluation, Policy Iteration, Value Iteration \\
+TD model-free & SARSA (on), Q-Learning (off), Expected SARSA \\
+MC model-free & First-Visit MC, Every-Visit MC \\
+Policy Gradient & REINFORCE \\
+Actor-Critic & A2C, A3C, PPO, TRPO, SAC, TD3, DDPG \\
+Deep RL & DQN (+ replay buffer + target network) \\
+Model-Based & AlphaGo, AlphaZero, MuZero, EfficientZero \\
+LLM alignment & RLHF (PPO), GRPO (DeepSeek) \\
+\bottomrule
+\end{tabular}
+\end{formbox}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{l l l l}
+\toprule
+\textbf{Catégorie} & \textbf{Questions} & \textbf{Points} & \textbf{Difficulté} \\
+\midrule
+Définitions (par c\oe{}ur) & Q1--5, Q14 & 8 pts & Facile \\
+Distinctions conceptuelles & Q6--13 & 8 pts & Facile \\
+Bellman & Q15--16 & 2 pts & Moyen \\
+Pseudo-code DP & Q17 & 3 pts & Moyen \\
+Avantages/inconvénients & Q18 & 1 pt & Facile \\
+Model-free (identification) & Q20--21 & 4 pts & Moyen \\
+Cas continu & Q22--25 & 4 pts & Facile \\
+Deep RL & Q26--30 & 7 pts & Moyen \\
+Model-Based & Q31--32 & 2 pts & Facile \\
+Bonus & Q19, Q29d, Q33 & 4 pts & Difficile \\
+\midrule
+\textbf{TOTAL} & & \textbf{40 + 4 bonus} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tipbox}[Stratégie d'examen]
+Les \textbf{16 premiers points} (définitions + distinctions) sont du par-c\oe{}ur pur $\to$ 30 min.\\
+Les \textbf{6 pts} de Bellman + DP demandent de comprendre la récursion.\\
+Le reste (continu, deep RL, model-based) = compréhension générale.\\
+Les bonus nécessitent un vrai travail de fond (preuve, identification fine).
+\end{tipbox}
+
+\end{document}
